@@ -8,9 +8,9 @@
   </requires>
 	<extension point="xbmc.addon.repository"
 		name="VietMedia Add-on Repository">
-		<info compressed="true">https://raw.github.com/tamnm/kodi.mp3.zing.vn/master/addons.xml</info>
-		<checksum>https://raw.github.com/tamnm/kodi.mp3.zing.vn/master/addons.xml.md5</checksum>
-		<datadir zip="true">https://raw.github.com/tamnm/kodi.mp3.zing.vn/master</datadir>
+		<info compressed="true">https://raw.githubusercontent.com/tamnm/kodi.mp3.zing.vn/master/addons.xml</info>
+		<checksum>https://raw.githubusercontent.com/tamnm/kodi.mp3.zing.vn/master/addons.xml.md5</checksum>
+		<datadir zip="true">https://raw.githubusercontent.com/tamnm/kodi.mp3.zing.vn/master</datadir>
 		<hashes>true</hashes>
 	</extension>
 	<extension point="xbmc.addon.metadata">
