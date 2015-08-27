@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="General Settings">		
+		<setting id="video_quality" type="enum" label="Select video default quality" values="240|360|480|720|1080" default="4"/>
+		<setting id="audio_quality" type="enum" label="Select audio default quality" values="128|320|lossless" default="2"/>
+		<setting id="download_path" type="folder" label="Download Path" default="" />
+	</category>	
+</settings>

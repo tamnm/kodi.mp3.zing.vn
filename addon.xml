@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<addon
+  id="plugin.video.mp3zing"
+  version="0.9"
+  name="Mp3.Zing.Vn"
+  provider-name="MrOdin">
+  <requires>
+  <import addon="xbmc.python" version="2.1.0" />    
+    <import addon="script.common.plugin.cache" version="2.5.2" />    
+    <import addon="script.module.requests" version="2.4.3"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource"
+            library="mp3zing.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary>Nghe nhac tren mp3.zing.vn</summary>
+    <description>Nghe nhac tren mp3.zing.vn</description>
+    <platform>all</platform>
+  </extension>
+</addon>
+<addon id="service.vnmusic"
+       name="Vn Music Service"
+       version="1.0.0"
+       provider-name="MrOdin">
+  <requires>
+    <import addon="xbmc.python" version="2.1.0"/>
+    <import addon="script.module.requests" version="2.4.3"/>
+  </requires>
+  <extension point="xbmc.service" library="service.py" start="login" />
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <summary lang="en">Service support for vietnamese music addons (NhacCuaTui and Zing)</summary>
+  <description lang="en"></description>
+  <website></website>
+  <email></email>
+  </extension>
+</addon>
