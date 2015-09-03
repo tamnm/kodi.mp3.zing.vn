@@ -20,6 +20,26 @@
     <platform>all</platform>
   </extension>
 </addon>
+<addon
+  id="plugin.video.tvzing"
+  version="0.9"
+  name="Tv.Zing.Vn"
+  provider-name="MrOdin">
+  <requires>
+  <import addon="xbmc.python" version="2.1.0" />    
+    <import addon="script.common.plugin.cache" version="2.5.2" />    
+    <import addon="script.module.requests" version="2.4.3"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource"
+            library="tvzing.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary>Zing TV - Truyền hình, Phim, Giáo Dục</summary>
+    <description>TV Show, Hài Kịch, Phim Truyền Hình chất lượng HD</description>
+    <platform>all</platform>
+  </extension>
+</addon>
 <addon id="service.vnmusic"
        name="Vn Music Service"
        version="1.0.1"

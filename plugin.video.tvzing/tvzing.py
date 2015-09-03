@@ -19,6 +19,10 @@ QUALITY = int(SETTING.getSetting('video_quality'))
 VIDEO_INFO_API='http://api.tv.zing.vn/2.0/media/info?api_key=d04210a70026ad9323076716781c223f&session_key=91618dfec493ed7dc9d61ac088dff36b&&media_id='
 THUMB_BASE_URL = 'http://image.mp3.zdn.vn/'
 HOME_URL = 'http://tv.zing.vn'
+
+SEARCH_CHANNEL_URL = 'http://tv.zing.vn/tim-kiem/program.html?q='
+SEARCH_VIDEO_URL = 'http://tv.zing.vn/tim-kiem/video.html?q='
+
 mHOME =0
 mTHE_LOAI=100
 mTHE_LOAI_CON=101
@@ -26,8 +30,26 @@ mTHE_LOAI_NOI_BAT=102
 mTHE_LOAI_NOI_BAT_CON=103
 mSERIES=200
 mCHANNEL=300
+mCHANNEL_SECTION=301
+mPHIM =400
+mSEARCH = 500
+mSEARCH_CHANNEL=501
+mSEARCH_VIDEO=502
+mSEARCH_MV=503
 MPLAY=1000
 
+def getUserInput():
+	keyb = xbmc.Keyboard('', 'Enter keyword')
+	keyb.doModal()
+	searchText = None
+	if (keyb.isConfirmed()):
+		searchText = urllib.quote_plus(keyb.getText())
+	return searchText
+
+def fixZingLink(href):
+	if not 'http' in href:
+		return HOME_URL + href
+	return href
 def getVideoId(href):
 	sp = href.split('/')
 	sid = sp[len(sp)-1].replace('.html','').replace('.htm','')
@@ -141,7 +163,7 @@ def pagination(soup,mode):
 		cls = page.get('class')
 		if cls != None and len(cls)>0 and cls[0] == 'active':
 			nextPage= pages[i+1]
-			href = HOME_URL + nextPage.get('href')
+			href = fixZingLink(nextPage.get('href'))
 			return makeFolderItem(u'Next Page',href,mode)
 	return None
 def alert(msg):
@@ -165,8 +187,20 @@ def parse(url,mode):
 		return parseTheLoaiCon(url)
 	if mode == mCHANNEL:
 		return parseChannel(url)
+	if mode == mCHANNEL_SECTION:
+		return parseChannelSection(url,int(PARAMS['section']))
+	if mode == mPHIM:
+		return phim(url)
 	if mode == mSERIES:
 		return parseSeries(url)
+	if mode == mSEARCH:
+		return search(url)
+	if mode == mSEARCH_CHANNEL:
+		return searchChannel(url)
+	if mode == mSEARCH_VIDEO:
+		return searchVideo(url)
+	if mode == mSEARCH_MV:
+		return searchMV(url)
 	if mode ==MPLAY:
 		play(url)
 	return None
@@ -181,10 +215,11 @@ def parseHome():
 	items.append(makeFolderItem(u'Hài hước','http://tv.zing.vn/the-loai/Hai-Huoc/IWZ9Z0D6.html',mTHE_LOAI))
 	items.append(makeFolderItem(u'Thiếu nhi','http://tv.zing.vn/the-loai/Thieu-Nhi/IWZ9ZIW8.html',mTHE_LOAI))
 	items.append(makeFolderItem(u'Khoa học - Giáo dục','http://tv.zing.vn/the-loai/Giao-Duc/IWZ9Z0D7.html',mTHE_LOAI))
-	items.append(makeFolderItem(u'Phim điện ảnh','http://tv.zing.vn/the-loai/Phim-Dien-Anh/IWZ9ZIOZ.html',mTHE_LOAI))
+	#items.append(makeFolderItem(u'Phim điện ảnh','http://tv.zing.vn/the-loai/Phim-Dien-Anh/IWZ9ZIOZ.html',mTHE_LOAI))
 	items.append(makeFolderItem(u'Âm nhạc','http://tv.zing.vn/the-loai/Am-nhac/IWZ9Z0DC.html',mTHE_LOAI))
 	items.append(makeFolderItem(u'Tin tức - Thời sự','http://tv.zing.vn/the-loai/Tin-Tuc-Su-Kien/IWZ9Z0CF.html',mTHE_LOAI))
 	items.append(makeFolderItem(u'Thể thao','http://tv.zing.vn/the-loai/The-Thao/IWZ9Z0DI.html',mTHE_LOAI))
+	items.append(makeFolderItem(u'Tìm kiếm','',mSEARCH))
 	return items
 def parseTheLoai(url):
 	html = load(url)
@@ -200,26 +235,41 @@ def parseTheLoai(url):
 			m = mTHE_LOAI_NOI_BAT
 		else:
 			m = mTHE_LOAI_CON
-		item = makeFolderItem(title,HOME_URL+ link['href'],m)
+		item = makeFolderItem(title,fixZingLink(link['href']),m)
 		items.append(item)
 	return items
+def parseSingleChannel(item):
+	title = item.select('div.box-description h3 a')[0].get_text()
+	thumb = item.select('a.thumb img')[0]['src']
+	
+	m = mCHANNEL
+	playable = False
+	href = item.select('a.thumb')[0]['href']
+
+	if 'phim' in href:
+		m = mPHIM
+	link = buildPath({'url':fixZingLink(href),'m':m})
+
+	rate = item.select('div.rating-score span')[0].get_text()
+
+	views = item.select('span._listen')[0].get_text()
+	p = item.select('p')
+	tagline = ''
+	if len(p)>0:
+		tagline = p[0].get_text()
+
+	r = {'label':title,'label2':rate+'/'+views,'icon':thumb,'thumb':thumb,'playable':playable,'path':link}
+	r['art'] = {'thumb':thumb,'poster':thumb,'fanart':thumb}
+	r['info'] = {'title':title,'tagline':tagline,'Plot':tagline,'plotoutline':tagline,'playcount':views,'Rating':float(rate),'watched':views}
+	return r
 def parseTheLoaiCon(url):
 	html = load(url)
 	soup = BeautifulSoup(html)
 	result = []
 	items = soup.select('div.item')
 	for item in items:
-		title = item.select('div.box-description h3 a')[0].get_text()
-		thumb = item.select('a.thumb img')[0]['src']
-		link = buildPath({'url':HOME_URL+ item.select('a.thumb')[0]['href'],'m':mCHANNEL})
-		rate = item.select('div.rating-score span')[0].get_text()
+		result.append(parseSingleChannel(item))
 
-		views = item.select('span._listen')[0].get_text()
-		tagline = item.select('p')[0].get_text()
-		r = {'label':title,'label2':rate+'/'+views,'icon':thumb,'thumb':thumb,'playable':False,'path':link}
-		r['art'] = {'thumb':thumb,'poster':thumb,'fanart':thumb}
-		r['info'] = {'title':title,'tagline':tagline,'Plot':tagline,'plotoutline':tagline,'playcount':views,'Rating':float(rate),'watched':views}
-		result.append(r)
 	p = pagination(soup,mTHE_LOAI_CON)
 
 	if p!=None:
@@ -231,19 +281,61 @@ def parseChannel(url):
 	soup = BeautifulSoup(html)
 	result = []
 	series = soup.select('div.section')
+	section =0
 	for s in series:
 		if 'row' in str(s['class']):
-			title = s.select('div.title-bar h3')[0].get_text()
+			h3 = s.select('div.title-bar h3')[0]
+			title = h3.get_text()
+			href = url
+			a = h3.select('a')
+			m = mCHANNEL_SECTION
+			if len(a)>0:
+				href = fixZingLink(a[0]['href'])
+				m = mSERIES
+			
+			link = buildPath({'url':href,'m':m,'section':section})
+			result.append({'label':title,'label2':'','icon':'DefaultFolder.png','thumb':'','playable':False,'path':link})
+		section = section+1
+	return result
+def phim(url):
+	return []
+	#html = load(url)
+	#soup = BeautifulSoup(html)
+	#buttons = soup.select('div.button-list a')
+	#result = []
+	#for a in buttons:
+	#	title = a.get_text()
+	#	href = a['href']
+	#	if 'Xem' in title:
+	#		link = getZingTvUrl(href)
+	#		result.append({'label':title,'label2':'','icon':'DefaultVideo.png','thumb':'','playable':True,'path':link})
+	#return result
+def parseChannelSection(url,section):
+	print url
+	html = load(url)
+	soup = BeautifulSoup(html)
+	result = []
+	s = soup.select('div.section')[section]
+	items = s.select('div.item')
+	for item in items:
+		a = item.select('.title a')[0]
+		title = a.get_text()
+		#href= HOME_URL + a['href']
+		href = getZingTvUrl(a['href'])
 
+		thumb = item.select('img')[0]['_src']
+		result.append({'label':title,'label2':'','icon':thumb,'thumb':thumb,'playable':True,'path':href})
+	return result
+	
 def parseSeries(url):
 	print url
 	xbmcplugin.setContent(HANDLE, 'episode')
 
-	if not 'series' in url:
-		html = load(url)
-		soup = BeautifulSoup(url)
-		seeAll = soup.select('div.see-all a')
-		url  = HOME_URL+ seeAll[1]['href']
+	#if not 'series' in url:
+	#	html = load(url)
+	#	soup = BeautifulSoup(url)
+	#	seeAll = soup.select('div.see-all a')
+	#	url  = HOME_URL+ seeAll[1]['href']
 
 	html = load(url)
 	soup = BeautifulSoup(html)
@@ -256,8 +348,11 @@ def parseSeries(url):
 		#link = buildPath({'url':item.select('a.thumb')[0]['href'],'m':MPLAY})
 		link = getZingTvUrl(item.select('a.thumb')[0]['href'])
 		rate = item.select('div.rating-score span')[0].get_text()
-		name = item.select('div.info-detail a')[0].get_text()
-		title = name+" - "+title
+		
+		aname =item.select('div.info-detail a')
+		if len(aname) >0:
+			title  = aname[0].get_text()+" - "+title
+
 		views = item.select('span._listen')[0].get_text()
 
 		r = {'label':title,'label2':rate+'/'+views,'icon':thumb,'thumb':thumb,'playable':True,'path':link}
@@ -310,11 +405,33 @@ def parseTheLoaiNoiBatCon(url,section):
 			playable = True
 			href = getZingTvUrl(aT[0]['href'])
 		else:
-			href = buildPath({'url':href,'m':mSERIES})
+			href = fixZingLink(href)
+			href = buildPath({'url':href,'m':mCHANNEL})
 		thumb = item.a.img['_src']
 
 		result.append({'label':title,'label2':'','icon':thumb,'thumb':thumb,'playable':playable,'path':href})
 	return result
+def search(url):
+	items =[]
+	items.append(makeFolderItem(u'Tìm kiếm Chương trình','',mSEARCH_CHANNEL))
+	items.append(makeFolderItem(u'Tìm kiếm Video','',mSEARCH_VIDEO))
+	items.append(makeFolderItem(u'Tìm kiếm MV','',mSEARCH_MV))
+	return items
+def searchChannel(url):
+	if url == None or url == '':
+		kw = getUserInput()
+		url  = SEARCH_CHANNEL_URL + kw
+	return parseTheLoaiCon(url)
+def searchVideo(url):
+	if url == None or url == '':
+		kw = getUserInput()
+		url  = SEARCH_VIDEO_URL + kw
+	return parseSeries(url)
+def searchMV(url):
+	if url == None or url == '':
+		kw = getUserInput()
+		url  = SEARCH_VIDEO_URL + kw
+	return parseSeries(url)
 def play(url):
 	sid = getVideoId(url)
 	url = VIDEO_INFO_API + sid
@@ -336,7 +453,7 @@ PARAMS = parseQs(sys.argv[2])
 
 xbmcplugin.setContent(HANDLE, 'movies')
 
-url = HOME_URL
+url = ''
 mode = mHOME
 
 if 'url' in PARAMS:

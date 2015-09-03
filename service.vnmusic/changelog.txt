@@ -1,6 +1,6 @@
 v1.0.1
--fix quality auto select
--support zingtv link
+- fix quality auto select
+- support zingtv link
 
 v1.0
 - Init first version
