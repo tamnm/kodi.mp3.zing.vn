@@ -2,7 +2,7 @@
 <addons>
 <addon
   id="plugin.video.mp3zing"
-  version="0.9"
+  version="1.0"
   name="Mp3.Zing.Vn"
   provider-name="MrOdin">
   <requires>
@@ -22,7 +22,7 @@
 </addon>
 <addon id="service.vnmusic"
        name="Vn Music Service"
-       version="1.0.0"
+       version="1.0.1"
        provider-name="MrOdin">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>

@@ -62,6 +62,8 @@ mPlayAllBxhMv=1004
 mPlayAllSearchSong=1005
 mPlayAllNgheSySongs=1006
 mPlayAllNgheSyVideo=1007
+mPlayAllSearchVideo=1008
+
 def getSongUrl(href):
 	sid = getSongId(href)
 	sUrl =  'http://localhost:9998/mp3ZAudio?sid='+sid +'&q='+str(audio_quality)
@@ -289,7 +291,7 @@ def videoChuDe(url):
 	for s in songs:
 		addVideo(s['Title'],getVideoUrl(s['Link']),s['Thumb'],s['Artist'],s['Thumb'],commands= cmd)
 
-	pagination(soup,mAlbumChuDe)
+	pagination(soup,mVideoChuDe)
 	pass
 def playAllVideoChuDe(url):
 	soup = BeautifulSoup(load(url))
@@ -350,6 +352,9 @@ def playAllVideo(songs):
 
 	xbmc.Player().play(alist)
 def playAllSong(songs):
+	n = xbmc.executebuiltin('Container(0).NumItems')
+	print('Container(0).NumItems:'+str(n))
+
 	alist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
 	alist.clear()
 
@@ -414,7 +419,7 @@ def getUserInput():
 def search():
 	addDir(u'Tìm kiếm bài hát','',mSearchSong)
 	#addDir(u'Tìm kiếm Album/Playlist','',mSearchAlbum)
-	#addDir(u'Tìm kiếm MV','',mSearchMv)
+	addDir(u'Tìm kiếm Video','',mSearchMv)
 	pass
 def getSearchSongs(soup):
 	songs = soup.select('div.item-song')
@@ -447,6 +452,31 @@ def playAllSearchSong(url):
 	songs = getSearchSongs(soup)
 	playAllSong(songs)
 	pass
+def getSearchVideos(soup):
+	videos = soup.select('a.thumb')
+	r  = []
+	for v in videos:
+		r.append({'Title':v['title'],'Link':v['href'],'Thumb':v.img['src'],'Artist':''})
+	return r
+def playAllSearchVideo(url):
+	html = load(url)
+	soup = BeautifulSoup(html)
+	videos = getSearchVideos(soup)
+	playAllVideo(videos)
+	pass
+def searchMv(url):
+	if url == None or url == '':
+		kw = getUserInput()
+		url = searchVideoUrl+ kw
+	html = load(url)
+	soup = BeautifulSoup(html)
+	
+	songs = getSearchVideos(soup)
+	cmd = createCommand('Play all video',url,mPlayAllSearchVideo)
+	for s in songs:
+		addVideo(s['Title'],getVideoUrl(s['Link']),s['Thumb'],s['Artist'],s['Thumb'],commands=cmd)
+
+	pagination(soup,mSearchMv)
 def allNgheSy():
 	xbmc.executebuiltin('Container.SetViewMode(%d)'%(500))
 	
@@ -602,6 +632,10 @@ elif mode == mNgheSyVideo:
 	ngheSyVideo(url)
 elif mode == mPlayAllNgheSyVideo:
 	playAllNgheSyVideo(url)
+elif mode == mSearchMv:
+	searchMv(url)
+elif mode == mPlayAllSearchVideo:
+	playAllSearchVideo(url)
 
 if mode <mPlaySong:
 	xbmcplugin.endOfDirectory(int(sysarg))

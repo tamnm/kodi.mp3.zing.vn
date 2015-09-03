@@ -14,6 +14,7 @@ import httplib
 
 songInfoApi = 'http://api.mp3.zing.vn/api/mobile/song/getsonginfo?keycode=fafd463e2131914934b73310aa34a23f&requestdata={"id":"_ID_ENCODED_"}'
 videoInfoApi ='http://api.mp3.zing.vn/api/mobile/video/getvideoinfo?keycode=fafd463e2131914934b73310aa34a23f&requestdata={"id":"_ID_ENCODED_"}'
+zingTvApi ='http://api.tv.zing.vn/2.0/media/info?api_key=d04210a70026ad9323076716781c223f&session_key=91618dfec493ed7dc9d61ac088dff36b&&media_id='
 
 def load(url):
 	r = requests.get(url)
@@ -28,6 +29,49 @@ def checkUrl(url):
 		#log('check url:%s - %s'%(url,str(e)))
 		return False
 		pass
+def getZTVSource(source,quality=3):
+	result = None
+
+	if quality <0 :
+		return result
+
+	ss = []
+	if 'Video3GP' in source:
+		ss.append('http://'+source['Video3GP'])
+	else:
+		ss.append(None)
+
+	if 'Video480' in source:
+		ss.append('http://'+source['Video480'])
+	else:
+		ss.append(None)
+
+	if 'Video720' in source:
+		ss.append('http://'+source['Video720'])
+	else:
+		ss.append(None)
+
+	if 'Video1080' in source:
+		ss.append('http://'+source['Video1080'])
+	else:
+		ss.append(None)
+	if ss[quality]!=None:
+		result = ss[quality]
+	else:
+		for i in range(quality,-1,-1):
+			if ss[i] != None:
+				result = ss[i]
+				break
+		if result == None:
+			for i in range(quality,len(ss)):
+				if ss[i] != None:
+					result = ss[i]
+					break
+
+	if result !=None and checkUrl(result):
+		return result
+	else:
+		return getZTVSource(source,quality-1)
 def getZVideoSource(source,quality=4):
 	log('getVideoSource:'+str(quality))
 
@@ -70,10 +114,12 @@ def getZVideoSource(source,quality=4):
 		for i in range(quality,-1,-1):
 			if ss[i] != None:
 				result = ss[i]
+				break
 		if result == None:
 			for i in range(quality,len(ss)):
 				if ss[i] != None:
 					result = ss[i]
+					break
 
 	if result !=None and checkUrl(result):
 		return result
@@ -124,7 +170,11 @@ def getMp3ZingSong(sid,q):
 	js = json.loads(load(url))
 	url = getZAudioSource(js['source'],q)
 	return url
-
+def getZingTVVideo(sid,q):
+	url = zingTvApi + sid
+	js = json.loads(load(url))
+	url = getZTVSource(js['response']['other_url'],q)
+	return url
 def getMp3ZingVideo(sid,q):
 	url = videoInfoApi.replace('_ID_ENCODED_',sid)
 	js = json.loads(load(url))
@@ -159,6 +209,9 @@ class MyRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 			self.redirect(link)
 		elif "mp3ZVideo?" in self.path:
 			link = getMp3ZingVideo(queries['sid'][0],int(queries['q'][0]))
+			self.redirect(link)
+		elif 'ZingTV?' in self.path:
+			link = getZingTVVideo(queries['sid'][0],int(queries['q'][0]))
 			self.redirect(link)
 
 	def log_request(self, code='-', size='-'):
