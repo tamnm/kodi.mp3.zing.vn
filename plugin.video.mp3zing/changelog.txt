@@ -1,6 +1,9 @@
+v1.1
+- update import service vnmusic
+
 v1.0
 - fix next page on Video
 - support search video
 
 v0.9
-- Init alpha version
+- Init alpha version 
