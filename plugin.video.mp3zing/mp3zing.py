@@ -417,7 +417,7 @@ def getUserInput():
 	return searchText
 def search():
 	addDir(u'Tìm kiếm bài hát','',mSearchSong)
-	#addDir(u'Tìm kiếm Album/Playlist','',mSearchAlbum)
+	addDir(u'Tìm kiếm Album/Playlist','',mSearchAlbum)
 	addDir(u'Tìm kiếm Video','',mSearchMv)
 	pass
 def getSearchSongs(soup):
@@ -463,6 +463,20 @@ def playAllSearchVideo(url):
 	videos = getSearchVideos(soup)
 	playAllVideo(videos)
 	pass
+def searchAlbum(url):
+	if url == None or url == '':
+		kw = getUserInput()
+		url = searchAlbumUrl + kw
+	html = load(url)
+	soup =BeautifulSoup(html)
+	items = soup.select('li.item')
+	for item in items:
+		a = item.select('a.thumb')[0]
+		title = a['title']
+		href = a['href']
+		thumb = a.img['src']
+		addDir(title,href,mAlbum,thumb)
+	pagination(soup,mAlbumChuDe)
 def searchMv(url):
 	if url == None or url == '':
 		kw = getUserInput()
@@ -635,6 +649,8 @@ elif mode == mSearchMv:
 	searchMv(url)
 elif mode == mPlayAllSearchVideo:
 	playAllSearchVideo(url)
+elif mode == mSearchAlbum:
+	searchAlbum(url)
 
 if mode <mPlaySong:
 	xbmcplugin.endOfDirectory(int(sysarg))

@@ -1,3 +1,6 @@
+v1.0.3
+- add search Album\Playlist
+
 v1.0.2
 - add paging for Album\Chu-de
 
