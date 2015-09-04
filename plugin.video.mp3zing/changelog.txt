@@ -1,4 +1,7 @@
-v1.1
+v1.0.2
+- add paging for Album\Chu-de
+
+v1.0.1
 - update import service vnmusic
 
 v1.0

@@ -241,8 +241,7 @@ def albumChuDe(url):
 		href = a['href']
 		thumb = a.img['src']
 		addDir(title,href,mAlbum,thumb)
-	
-	pass
+	pagination(soup,mAlbumChuDe)
 def pagination(soup,mode):
 	pages = soup.select('div.pagination a')
 
