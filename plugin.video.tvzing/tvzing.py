@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 # -*- coding: utf-8 -*- 
 __author__ = 'MrOdin'
-import urllib, urllib2, re, os, sys, StringIO
+import urllib, urllib2, re, os, sys, StringIO, gzip
 import xbmc
 import json
 import xbmcaddon,xbmcplugin,xbmcgui
@@ -37,6 +37,7 @@ mSEARCH_CHANNEL=501
 mSEARCH_VIDEO=502
 mSEARCH_MV=503
 MPLAY=1000
+
 
 def getUserInput():
 	keyb = xbmc.Keyboard('', 'Enter keyword')
@@ -167,13 +168,24 @@ def pagination(soup,mode):
 			return makeFolderItem(u'Next Page',href,mode)
 	return None
 def alert(msg):
-	xbmcgui.Dialog().ok(addonName, msg)
+	xbmcgui.Dialog().ok(ADDON_NAME, msg)
 	pass
 
 def load(url):
-	r = requests.get(url)
-
-	return r.text
+	header = {'Connection': 'keep-alive','Accept-Encoding': 'gzip, deflate','Accept': '*/*','User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0'}
+	#r = requests.get(url)
+	#print r.headers
+	#return r.text
+	request = urllib2.Request(url,headers = header)
+	#request.add_header('Accept-encoding', 'gzip')
+	response = urllib2.urlopen(request)
+	data = response.read()
+	print response.info()
+	if response.info().get('Content-Encoding') == 'gzip':
+		buf = StringIO.StringIO(data)
+		f = gzip.GzipFile(fileobj=buf)
+		data = f.read()
+	return data
 def parse(url,mode):
 	if mode == mHOME:
 		return parseHome()
@@ -222,6 +234,7 @@ def parseHome():
 	items.append(makeFolderItem(u'Tìm kiếm','',mSEARCH))
 	return items
 def parseTheLoai(url):
+	load('http://localhost:8080/test.php')
 	html = load(url)
 	soup = BeautifulSoup(html)
 	container = soup('div',{'class':'dropdown'})

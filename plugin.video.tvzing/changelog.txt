@@ -1,3 +1,6 @@
+v0.9.2
+- ko update j  ca, zing cache da dc xu ly
+
 v0.9.1
 - update import vnmusic service
 
