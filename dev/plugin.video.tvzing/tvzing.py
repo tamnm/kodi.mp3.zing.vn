@@ -234,7 +234,6 @@ def parseHome():
 	items.append(makeFolderItem(u'Tìm kiếm','',mSEARCH))
 	return items
 def parseTheLoai(url):
-	load('http://localhost:8080/test.php')
 	html = load(url)
 	soup = BeautifulSoup(html)
 	container = soup('div',{'class':'dropdown'})
