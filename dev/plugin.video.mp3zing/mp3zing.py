@@ -27,6 +27,7 @@ searchAlbumUrl = 'http://mp3.zing.vn/tim-kiem/playlist.html?q='
 searchVideoUrl = 'http://mp3.zing.vn/tim-kiem/video.html?q='
 searchArtistUrl = 'http://ac.mp3.zing.vn/complete?type=artist&query='
 artistInfoApi =  'http://api.mp3.zing.vn/api/mobile/artist/getartistinfo?key=fafd463e2131914934b73310aa34a23f&requestdata={"id":"_ID_"}'
+topApi ='http://mp3.zing.vn/xhr/song?op=get-top&start=0&length=100&id='
 
 mHome=0
 mAllChuDe=100
@@ -46,6 +47,8 @@ mBxhSong=401
 mBxhAlbum=402
 mBxhMv=403
 mAllTop100=500
+mTop100Sub=501
+mTop100Song=502
 mAllAlbum=600
 mAlbum=601
 mAlbumChuDe=602
@@ -53,6 +56,13 @@ mSearch=700
 mSearchSong=701
 mSearchAlbum=702
 mSearchMv=703
+
+mHot=800
+mHotAlbum=801
+mHotMV=802
+mHotViet=803
+mHotVietNew=804
+mHotPlaylist=805
 
 mPlaySong=1000
 mPlayAllAlbum=1001
@@ -63,6 +73,11 @@ mPlayAllSearchSong=1005
 mPlayAllNgheSySongs=1006
 mPlayAllNgheSyVideo=1007
 mPlayAllSearchVideo=1008
+
+mPlayAllHotMV=1009
+mPlayAllHotViet=1010
+mPlayAllHotVietNew=1011
+mPlayAllTop100Song=1012
 
 def getSongUrl(href):
 	sid = getSongId(href)
@@ -162,12 +177,14 @@ def get_params():
 
         return param
 def home():
+	addDir(u'Hot','',mHot)
 	addDir(u'Chủ đề',"http://mp3.zing.vn/chu-de",mAllChuDe)
 	addDir(u'Album','http://mp3.zing.vn/the-loai-album.html',mAllAlbum)
 	addDir(u'Video','http://mp3.zing.vn/the-loai-video.html',mAllVideo)
 	addDir(u'Bảng xếp hạng','http://mp3.zing.vn/bang-xep-hang/index.html',mAllBxh)
 	addDir(u'Nghệ sỹ','',mAllNgheSy)
 	addDir(u'Tìm kiếm','',mSearch)
+	addDir(u'Top100','',mAllTop100)
 	pass
 def allChuDe(url):
 	html = load(url)
@@ -575,6 +592,176 @@ def playAllNgheSyVideo(url):
 	soup = BeautifulSoup(load(url))
 	songs = getNgheSyVideos(soup)
 	playAllVideo(songs)
+def hot():
+	addDir(u'Albums hot','',mHotAlbum)
+	addDir(u'MV hot','',mHotMV)
+	addDir(u'Nhạc việt Hot','',mHotViet)
+	addDir(u'Nhạc việt mới','',mHotVietNew)
+	addDir(u'Playlist chọn lọc','',mHotPlaylist)
+def findHomeSection(t):
+	t = t.lower()
+
+	html = load(homeUrl)
+	soup = BeautifulSoup(html)
+	sections = soup.select('div.section')
+	for section in sections:
+		titleA =section.select('h2.title-section a')
+		if len(titleA)==0:continue
+		title = titleA[0]
+		sectionTitle = title['title'].lower()
+		print sectionTitle
+
+		if sectionTitle ==t:
+			return section
+	return None
+def hotAlbum():
+	section = findHomeSection('album hot')
+	albums = findHotSectionItems(section)
+	for a in albums:
+		addDir(a['Title'] + ' - '+ a['Artist'],a['Link'],mAlbum,a['Thumb'])
+def songsFromLis(ul):
+	lis = ul.select('li')
+	songs = []
+	for li in lis:
+		a = li.select('h3.txt-primary a')[0]
+		title = a.get_text()
+		href = a['href']
+		songs.append({'Title':title,'Artist':'','Link':href,'Thumb':''})
+	return songs
+
+def hotViet():
+	html = load(homeUrl)
+	soup = BeautifulSoup(html)
+	section = soup.select('div.section')[2]
+	songs = songsFromLis(section.select('ul')[0])
+
+	cmd = createCommand('Play all songs','',mPlayAllHotViet)
+
+	for s in songs:
+		addSong(s['Title'],getSongUrl(s['Link']),s['Thumb'],s['Artist'],s['Thumb'],commands = cmd)
+
+def playAllHotViet():
+	html = load(homeUrl)
+	soup = BeautifulSoup(html)
+	section = soup.select('div.section')[2]
+
+	songs = songsFromLis(section.select('ul')[0])
+	playAllSong(songs)
+
+def hotVietNew():
+	html = load(homeUrl)
+	soup = BeautifulSoup(html)
+	section = soup.select('div.section')[2]
+	songs = songsFromLis(section.select('ul')[1])
+
+	cmd = createCommand('Play all songs','',mPlayAllHotVietNew)
+
+	for s in songs:
+		addSong(s['Title'],getSongUrl(s['Link']),s['Thumb'],s['Artist'],s['Thumb'],commands = cmd)
+
+def playAllHotVietNew():
+	html = load(homeUrl)
+	soup = BeautifulSoup(html)
+	section = soup.select('div.section')[2]
+	songs = songsFromLis(section.select('ul')[1])
+	playAllSong(songs)
+
+def findHotSectionItems(section):
+	items = section.select('div.album-item')
+	result =[]
+	for item in items:
+		thumb = item.select('img')[0]['src']
+		title = item.select('.title-item')[0].get_text()
+		artist = item.select('.title-sd-item')[0].get_text()
+		href = item.select('a')[0]['href']
+		result.append({'Title':title,'Artist':artist,'Thumb':thumb,'Link':href})
+
+	return result
+def hotMV():
+	section = findHomeSection('video hot')
+	videos = findHotSectionItems(section)
+	cmd = createCommand('Play all videos','',mPlayAllHotMV)
+	for v in videos:
+		addVideo(v['Title'],getVideoUrl(v['Link']),v['Thumb'],v['Artist'],v['Thumb'],commands=cmd)
+
+def hotPlayList():
+	html = load(homeUrl)
+	soup = BeautifulSoup(html)
+	section = soup.select('div.full-section')[1]
+	albums = []
+	items = section.select("a.thumb")
+	for item in items:
+		thumb = item.select('img')[0]['src']
+		title = item['title']
+		href = item['href']
+		albums.append({'Title':title,'Thumb':thumb,'Link':href,'Artist':''})
+
+	for a in albums:
+		addDir(a['Title'],a['Link'],mAlbum,a['Thumb'])
+
+def playAllhotMV():
+	section = findHomeSection('video hot')
+	videos = findHotSectionItems(section)
+	playAllVideo(videos)
+
+def top100():
+	addDir(u'Top 100 Việt nam','http://mp3.zing.vn/top100/Nhac-Tre/IWZ9Z088.html',mTop100Sub)
+	addDir(u'Top 100 Âu mỹ','http://mp3.zing.vn/top100/Pop/IWZ9Z097.html',mTop100Sub)
+	addDir(u'Top 100 Châu á','http://mp3.zing.vn/top100/Han-Quoc/IWZ9Z08W.html',mTop100Sub)
+	addDir(u'Top 100 Hòa tấu','http://mp3.zing.vn/top100/Classical/IWZ9Z0BI.html',mTop100Sub)
+
+def top100Sub(url):
+	html = load(url)
+	soup = BeautifulSoup(html)
+	section = soup.select('div.section')[0]
+	lis= section.select('.tab-menu li a')
+	for a in lis:
+		title = a.get_text()
+		href = a['href']
+		addDir(title,href,mTop100Song)
+
+def getTop100Song(url):
+	sid = getSongId(url)
+	
+	url = topApi + sid;
+	text = load(url)
+	j = json.loads(text)
+	songs = []
+	for s in j['data']:
+		title = s['name']
+		artist = s['artist']
+		thumb = thumbBaseUrl + s['thumb']
+		link = homeUrl + s['link']
+		order  =s['order']
+		title = '[%s] %s - %s'%(order,title,artist)
+		songs.append({'Title':title,'Artist':'','Thumb':thumb,'Link':link})
+	return songs;
+
+	#html = load(url)
+	#soup = BeautifulSoup(html)
+	#items = soup.select('div.e-item')
+	#songs = []
+	#pos = 1
+	#for item in items:
+	#	a = item.select('a.thumb')[0]
+	#	title =str(pos) +' - ' + a['title']
+	#	href = a['href']
+	#	thumb = a.img['src']
+	#	pos = pos +1
+	#	artist = item.select('div.fn-artist_list ')[0].get_text()
+	#	songs.append({'Title':title,'Link':href,'Thumb':thumb,'Artist':artist})
+	#return songs
+
+def top100Song(url):
+	songs  = getTop100Song(url)
+
+	cmd = createCommand('Play all songs',url,mPlayAllTop100Song)
+	for s in songs:
+		addSong(s['Title'],getSongUrl(s['Link']),s['Thumb'],s['Artist'],s['Thumb'],commands = cmd)
+
+def playAllTop100Song(url):
+	songs  = getTop100Song(url)
+	playAllSong(songs)
 
 sysarg=str(sys.argv[1])
 addon_handle = int(sys.argv[1])
@@ -651,6 +838,32 @@ elif mode == mPlayAllSearchVideo:
 	playAllSearchVideo(url)
 elif mode == mSearchAlbum:
 	searchAlbum(url)
+elif mode == mHot:
+	hot()
+elif mode ==mHotAlbum:
+	hotAlbum()
+elif mode == mHotMV:
+	hotMV()
+elif mode == mPlayAllHotMV:
+	playAllhotMV()
+elif mode == mHotViet:
+	hotViet()
+elif mode == mHotVietNew:
+	hotVietNew()
+elif mode == mPlayAllHotViet:
+	playAllHotViet()
+elif mode == mPlayAllHotVietNew:
+	playAllHotVietNew()
+elif mode == mHotPlaylist:
+	hotPlayList()
+elif mode == mAllTop100:
+	top100()
+elif mode == mTop100Sub:
+	top100Sub(url)
+elif mode == mTop100Song:
+	top100Song(url)
+elif mode == mPlayAllTop100Song:
+	playAllTop100Song(url)
 
 if mode <mPlaySong:
 	xbmcplugin.endOfDirectory(int(sysarg))

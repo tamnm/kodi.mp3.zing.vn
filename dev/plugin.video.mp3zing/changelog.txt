@@ -1,3 +1,7 @@
+v1.0.4
+- add top 100
+- add Hot
+
 v1.0.3
 - add search Album\Playlist
 
