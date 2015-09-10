@@ -180,6 +180,17 @@ def getMp3ZingVideo(sid,q):
 	js = json.loads(load(url))
 	source = getZVideoSource(js['source'],q)
 	return source
+def getTalkTVVideo(sid):
+	#loadPlayer.manifestUrl = "http://live.csmtalk.vcdn.vn/hls/6b1cc68ba8735185ada742e8713567c4/55f10fd0/elorenhat/index.m3u8";
+	url = 'http://talktv.vn/'+sid
+	html = load(url)
+	lines = html.split('\n')
+	for line in lines:
+		line = line.strip()
+		if 'loadPlayer.manifestUrl' in line:
+			line = line.replace('loadPlayer.manifestUrl','').replace('"','').replace(';','').replace('=','').strip()
+			return line
+	return None
 def log(m):
 	sys.stdout.write(m)
 	pass
@@ -213,7 +224,9 @@ class MyRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 		elif 'ZingTV?' in self.path:
 			link = getZingTVVideo(queries['sid'][0],int(queries['q'][0]))
 			self.redirect(link)
-
+		elif 'TalkTV?' in self.path:
+			link = getTalkTVVideo(queries['sid'][0])
+			self.redirect(link)
 	def log_request(self, code='-', size='-'):
 		sys.stdout.write("%s %s %s" % (self.requestline, str(code), str(size)))
 

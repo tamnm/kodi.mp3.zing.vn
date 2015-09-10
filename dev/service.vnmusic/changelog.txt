@@ -1,3 +1,6 @@
+v1.0.2
+- support link talktv
+
 v1.0.1
 - fix quality auto select
 - support zingtv link

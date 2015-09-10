@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+	<category label="General Settings">		
+		<!-- <setting id="video_quality" type="enum" label="Select video default quality" values="3GP|480|720|1080" default="3"/> -->
+	</category>	
+</settings>

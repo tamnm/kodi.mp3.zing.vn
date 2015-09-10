@@ -44,7 +44,7 @@
 </addon>
 <addon id="service.vnmusic"
        name="Vn Music Service"
-       version="1.0.1"
+       version="1.0.2"
        provider-name="MrOdin">
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
@@ -57,6 +57,27 @@
   <description lang="en"></description>
   <website></website>
   <email></email>
+  </extension>
+</addon>
+<addon
+  id="plugin.video.talktv"
+  version="0.1.0"
+  name="TalkTV.vn"
+  provider-name="MrOdin">
+  <requires>
+  <import addon="xbmc.python" version="2.1.0" />    
+    <import addon="script.common.plugin.cache" version="2.5.2" />    
+    <import addon="script.module.requests" version="2.4.3"/>
+    <import addon="service.vnmusic" version="1.0.2"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource"
+            library="talktv.py">
+        <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary>Truyền hình trực tiếp, stream game, xem trực tiếp game</summary>
+    <description>TalkTV là hệ thống cho phép stream và xem trực tiếp hoàn toàn miễn phí được xây dựng cho cộng đồng Việt.</description>
+    <platform>all</platform>
   </extension>
 </addon>
 </addons>
