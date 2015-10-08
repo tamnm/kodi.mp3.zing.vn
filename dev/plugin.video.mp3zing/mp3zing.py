@@ -209,7 +209,7 @@ def chuDe(url):
 def getAlbumSongs(url):
 	html = load(url)
 	soup = BeautifulSoup(html)
-	player = soup('div',{'id':'player5'})[0]
+	player = soup('div',{'id':'html5player'})[0]
 	xmlUrl = player['data-xml']
 	xmlUrl = xmlUrl.replace('/xml/','/html5xml/')
 	xml = load(xmlUrl)
